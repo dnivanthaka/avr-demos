@@ -1,0 +1,4 @@
+avr-objcopy -j .text -j .data -O ihex $(src).elf $(src).flash.hex
+
+avrdude: safemode: lfuse reads as E1
+avrdude: safemode: hfuse reads as D9
