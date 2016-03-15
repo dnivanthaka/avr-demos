@@ -1,2 +1,2 @@
 # avr-sample-lessons
-Sample lessons on AVR Microcontrollers
+Sample tryouts on AVR Microcontrollers
