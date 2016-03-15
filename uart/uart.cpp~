@@ -45,7 +45,7 @@ void setup()
 
 int main(void)
 {
-  const char *str = "TEST STRING";
+  char *str = "TEST STRING";
   setup();
   
   while(true){

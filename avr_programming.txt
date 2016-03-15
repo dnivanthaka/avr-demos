@@ -2,3 +2,8 @@ avr-objcopy -j .text -j .data -O ihex $(src).elf $(src).flash.hex
 
 avrdude: safemode: lfuse reads as E1
 avrdude: safemode: hfuse reads as D9
+
+avr-gcc -g -DF_CPU=8000000 -Wall -Os -Werror -Wextra -mmcu=atmega8 -c -o uart.o uart.cpp 
+avr-gcc -g -DF_CPU=8000000 -Wall -Os -Werror -Wextra -mmcu=atmega8  -o uart.elf uart.o
+avr-objcopy -j .text -j .data -O ihex uart.elf uart.flash.hex
+avrdude -pm8 -cusbasp -v -U flash:w:uart.flash.hex
