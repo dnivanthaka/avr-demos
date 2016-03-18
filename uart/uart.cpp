@@ -27,10 +27,10 @@
 
 //static unsigned char sPORTB = 0;
 
-void USART_Init(unsigned int ubrr);
+void USART_Init(unsigned int baudrate, unsigned char parity_bits);
 void USART_Transmit(unsigned char data);
 unsigned char USART_Receive(void);
-void USART_Write(const char *str);
+void USART_PrintString(const char *str);
 
 void setup()
 {
@@ -40,7 +40,7 @@ void setup()
   PORTB = (1 << PORTB1);
   //PORTB = sPORTB;
   
-  USART_Init(50);
+  USART_Init(BAUD, 1);
 }
 
 int main(void)
@@ -48,7 +48,7 @@ int main(void)
   const char *str = "TEST STRING";
   setup();
   
-  while(true){
+  for(;;){
     
     if(PINB & (1 << PINB1)){
      PORTB &= (0 << PORTB0 | 1 << PORTB1);
@@ -60,7 +60,7 @@ int main(void)
     //PORTB = 1 << PORTB0;
     
     //USART_Transmit('X');
-     USART_Write(str);
+     USART_PrintString(str);
     //_delay_ms(500);
     
     //PORTB = sPORTB;
@@ -69,13 +69,16 @@ int main(void)
   return 0;
 }
 
-void USART_Write(const char *str)
+void USART_PrintString(const char *str)
 {
-        for(int i=0;i<(int)strlen(str);i++){
-                USART_Transmit(*(str + i));
-        }
+    while(*str){
+        if(*str == '\n')
+            USART_Transmit('\r'); 
+        USART_Transmit(*str++);        
+    }
 }
 
+/*
 void USART_Init(unsigned int ubrr)
 {
     // Setting baud rate
@@ -83,20 +86,40 @@ void USART_Init(unsigned int ubrr)
     UBRRL = (unsigned char)ubrr;
     //Enable receiver and transmitter
     UCSRB = (1 << RXEN) | (1 << TXEN);
-    // Setting frame format, 8bit data, 2stop bit
+    // Setting frame format, 8bit data, 1stop bit
     //UCSRC = (1 << USBS) | (3 << UCSZ0);
     //UCSRC = (0 << USBS) | (3 << UCSZ0);
     UCSRC |= (1<<URSEL)|(1<<UCSZ0)|(1<<UCSZ1);
 }
+*/
+
+void USART_Init(unsigned int baudrate, unsigned char parity_bits)
+{
+    unsigned int ubrr = (F_CPU/16/baudrate) - 1;
+
+    // Setting baud rate
+    UBRRH = (unsigned char)(ubrr >> 8);
+    UBRRL = (unsigned char)ubrr;
+    //Enable receiver and transmitter
+    UCSRB = (1 << RXEN) | (1 << TXEN);
+    
+    if(parity_bits == 1){
+        // Setting frame format, 8bit data, 1stop bit
+        UCSRC = (1<<URSEL)|(1<<UCSZ0)|(1<<UCSZ1);
+    }else if(parity_bits == 2){
+        // Setting frame format, 8bit data, 2stop bit
+        UCSRC = (1<<URSEL)|(1<<UCSZ0)|(1<<UCSZ1)|(1 << USBS);
+    }
+}
 
 void USART_Transmit(unsigned char data)
 {
-  while( !(UCSRA & (1 << UDRE)) );
-  UDR = data;
+    while( !(UCSRA & (1 << UDRE)) );
+    UDR = data;
 }
 
 unsigned char USART_Receive(void)
 {
-  while( !(UCSRA & (1 << RXC)) );
-  return UDR;
+    while( !(UCSRA & (1 << RXC)) );
+    return UDR;
 }
