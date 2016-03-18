@@ -18,8 +18,8 @@
  Copyright (C) 2016, Dinusha Nivanthaka Amerasinghe <nivanthaka@gmail.com>
  */
 
-#include <avr/interrupt.h>
 #include <avr/io.h>
+#include <avr/interrupt.h>
 #include <util/delay.h>
 #include <string.h>
 #include <stdlib.h>
@@ -34,8 +34,6 @@
 
 USART uart(BAUD, 1);
 
-unsigned int adch = 0;
-
 void setup()
 {
   //uart = new UART();
@@ -45,33 +43,45 @@ void setup()
   PORTB = (1 << PORTB1);
   //PORTB = sPORTB;
   
-  ADMUX = 0;
-  //Free running mode
-  ADCSRA = (1 << ADEN | 1 << ADFR | 1 << ADIE);
+  //uart.USART_Init(BAUD, 1);
+  TIMSK |= 1 << TOIE0;
+  //Global interrupts enable
   sei();
+  //Prescaled to clk/1024
+  TCCR0 = (1 << CS02 | 0 << CS01 | 1 << CS00);
 }
 
-ISR(ADC_vect)
+ISR(TIMER0_OVF_vect)
 {
-  adch = ADCL;
   PORTB = 1 << PORTB0;
 }
 
 int main(void)
 {
+  //const char *str = "TEST STRING\n";
   char buffer[15];
   setup();
   
-  ADCSRA |= 1 << ADSC;
-  
   for(;;){
     
+    //if(PINB & (1 << PINB1)){
+     //PORTB &= (0 << PORTB0 | 1 << PORTB1);
+    //}else{
+     //_delay_ms(200);
+     //PORTB |= (1 << PORTB0 | 1 << PORTB1);
+     //_delay_ms(200);
+    //}
+    //PORTB = 1 << PORTB0;
     
+    //USART_Transmit('X');
+     unsigned int timer0 = TCNT0;
      //uart.printstr(str);
-     itoa(adch, buffer, 10);
+     itoa(timer0, buffer, 10);
      uart.printstr( buffer );
      uart.printstr( "\n" );
      _delay_ms(100);
+    
+    //PORTB = sPORTB;
   }
 
   return 0;
