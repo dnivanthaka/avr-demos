@@ -40,45 +40,48 @@ void setup()
 {
   //uart = new UART();
   // Setting pin0 as output
-  DDRB = (1 << DDB0);
+  DDRB = (1 << DDB0) | (1 << DDB1);
   // Enabling pull up on PORTB1
-  PORTB = (1 << PORTB1);
+  //PORTB = (1 << PORTB1);
   //PORTB = sPORTB;
   //DDRC = (0 << DDC0);
   //PORTC = (0 << PORTC0);
-  
-  ADMUX |= (1 << REFS0);
-  //Free running mode
-  //ADCSRA = (1 << ADEN | 1 << ADFR | 1 << ADIE);
-  //ADCSRA |= (1 << ADEN | 1 << ADFR);
-  //sei();
-  ADCSRA |= (1 << ADPS2); /* ADC clock prescaler /16 */
-  ADCSRA |= (1 << ADEN);  /* enable ADC */
-}
-
-ISR(ADC_vect)
-{
-  //adch = ADCL;
-  PORTB = 1 << PORTB0;
-  //ADCSRA |= 1 << ADSC;
+ 
 }
 
 int main(void)
 {
-  char buffer[15];
+  char buffer[32];
+  char sPORTB = 0;
   setup();
   
-  
-  
   for(;;){
-     ADCSRA |= 1 << ADSC;
-     loop_until_bit_is_clear(ADCSRA, ADSC);
-     adch = ADC;
      
      //uart.printstr(str);
-     itoa(adch, buffer, 10);
-     uart.printstr( (const char *)buffer );
+     //itoa(adch, buffer, 10);
+     uart.printstr("OK>");
+     uart.readstr(buffer);
+     //buffer[strlen(buffer) - 1] = '\0';
+     uart.printstr(buffer);
      uart.printstr( "\n" );
+     
+     if(strcmp("0on", buffer) == 0){
+       sPORTB |= (1 << PORTB0);
+     }else if(strcmp("0off", buffer) == 0){
+       //uart.printstr( "LED0 OFF" );
+       //uart.printstr( "\n" );
+       sPORTB &= ~(1 << PORTB0);
+     }else if(strcmp("1on", buffer) == 0 ){
+       sPORTB |= (1 << PORTB1);
+     }else if( strcmp("1off", buffer) == 0 ){
+       //uart.printstr( "LED1 OFF" );
+       //uart.printstr( "\n" );
+       sPORTB &= ~(1 << PORTB1);
+     }
+     
+     PORTB = sPORTB;
+     
+     //buffer[0] = '\0';
      _delay_ms(100);
   }
 
